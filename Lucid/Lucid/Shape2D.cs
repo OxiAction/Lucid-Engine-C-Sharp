@@ -1,5 +1,8 @@
 ﻿namespace Lucid.Lucid
 {
+    /// <summary>
+    /// Simple Shape2D Class
+    /// </summary>
     class Shape2D
     {
         public Vector2D Position { get; set; }
