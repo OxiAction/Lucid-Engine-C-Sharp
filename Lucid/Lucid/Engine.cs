@@ -39,7 +39,7 @@ namespace Lucid.Lucid
         private long _lastFPSUpdate = 0;
         // the number of frames delivered since the last time the "fps" moving average was updated (i.e. since "lastFpsUpdate").
         private int _framesSinceLastFPSUpdate = 0;
-        // the minimum amount of time in milliseconds that must pass since the last frame was executed before another frame can be executed
+        // set max fps
         private long _maxFPS = 0;
         public long MaxFPS
         { 
@@ -57,11 +57,13 @@ namespace Lucid.Lucid
                 }
             }
         }
+        // states if engine is running - or not
+        public bool _running = false;
 
         private static List<Shape2D> _shapes2D = new();
 
         /// <summary>
-        /// Engine
+        /// Engine Constructor
         /// </summary>
         /// <param name="canvas"></param>
         /// <param name="ScreenSize"></param>
@@ -72,12 +74,47 @@ namespace Lucid.Lucid
             this.ScreenSize = screenSize;
             this.Text = text;
 
-            _timeStart = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            _loopThread = new Thread(Loop);
+        }
 
+        /// <summary>
+        /// Starts the Engine's rendering
+        /// </summary>
+        public void Start()
+        {
+            if (_running)
+            {
+                return;
+            }
+
+            Debug.WriteLine("foo1");
+            if (!_loopThread.IsAlive)
+            {
+                Debug.WriteLine("foo2");
+                _loopThread.Start();
+            }
+
+            _timeStart = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             this.Canvas.Paint += OnRender;
 
-            _loopThread = new Thread(Loop);
-            _loopThread.Start();
+            _running = true;
+        }
+
+        /// <summary>
+        /// Stops the Engine's rendering
+        /// </summary>
+        public void Stop()
+        {
+            if (!_running)
+            {
+                return;
+            }
+
+            _timeStart = _timeStamp = 0;
+
+            this.Canvas.Paint -= OnRender;
+
+            _running = false;
         }
 
         public static void AddShape2D(Shape2D shape)
@@ -93,6 +130,11 @@ namespace Lucid.Lucid
         {
             while (_loopThread.IsAlive)
             {
+                if (!_running)
+                {
+                    continue;
+                }
+
                 _timeStamp = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - _timeStart;
 
                 // throttle the frame rate (if MaxFPS is set to a non-zero value)
