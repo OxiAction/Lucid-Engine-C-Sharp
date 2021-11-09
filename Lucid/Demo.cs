@@ -21,6 +21,7 @@ namespace Lucid
 
             // init Engine
             _engine = new Engine(canvas, new Vector2D(500, 400), "Foo");
+            _engine.MaxFPS = 10;
 
             // subscribe to some methods
             _engine.RenderGame += Engine_RenderGame;

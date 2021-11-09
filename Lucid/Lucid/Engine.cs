@@ -30,6 +30,7 @@ namespace Lucid.Lucid
         // an exponential moving average of the frames per second
         private int _fps = 10;
         public int Fps { get => _fps; }
+
         // a factor that affects how heavily to weight more recent seconds performance when calculating the average frames per second
         private float _fpsAlpha = 0.9f;
         // the minimum duration between updates to the frames-per-second estimate - higher values means more accuray
@@ -39,7 +40,23 @@ namespace Lucid.Lucid
         // the number of frames delivered since the last time the "fps" moving average was updated (i.e. since "lastFpsUpdate").
         private int _framesSinceLastFPSUpdate = 0;
         // the minimum amount of time in milliseconds that must pass since the last frame was executed before another frame can be executed
-        private long _minFrameDelay = 0;
+        private long _maxFPS = 0;
+        public long MaxFPS
+        { 
+            get => _maxFPS;
+            set
+            {
+                if (value == 0 || value < 0)
+                {
+                    // TODO: implement - stop engine
+                    _maxFPS = 0;
+                }
+                else
+                {
+                    _maxFPS = value;
+                }
+            }
+        }
 
         private static List<Shape2D> _shapes2D = new();
 
@@ -61,8 +78,6 @@ namespace Lucid.Lucid
 
             _loopThread = new Thread(Loop);
             _loopThread.Start();
-
-
         }
 
         public static void AddShape2D(Shape2D shape)
@@ -80,9 +95,8 @@ namespace Lucid.Lucid
             {
                 _timeStamp = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - _timeStart;
 
-
-                // throttle the frame rate (if MinFrameDelay is set to a non-zero value)
-                if (_timeStamp < _lastFrameTimeMs + _minFrameDelay)
+                // throttle the frame rate (if MaxFPS is set to a non-zero value)
+                if (_maxFPS > 0 && _timeStamp < _lastFrameTimeMs + (1000 / _maxFPS))
                 {
                     continue;
                 }
