@@ -17,10 +17,8 @@ namespace Lucid
         {
             Debug.WriteLine("Demo started...");
 
-            Canvas canvas = new();
-
             // init Engine
-            _engine = new Engine(canvas, new Vector2D(500, 400), "Foo")
+            _engine = new Engine(new Canvas(), new Vector2D(500, 400), "Foo")
             {
                 MaxFPS = 10
             };
@@ -35,9 +33,7 @@ namespace Lucid
             _engine.Start();
 
             // run the Form
-            Application.Run(canvas);
-
-            
+            Application.Run(_engine.Canvas);
         }
 
         private void Engine_RenderGame(object? sender, EngineEventArgs e)

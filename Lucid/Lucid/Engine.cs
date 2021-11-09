@@ -86,11 +86,9 @@ namespace Lucid.Lucid
             {
                 return;
             }
-
-            Debug.WriteLine("foo1");
+            
             if (!_loopThread.IsAlive)
             {
-                Debug.WriteLine("foo2");
                 _loopThread.Start();
             }
 
