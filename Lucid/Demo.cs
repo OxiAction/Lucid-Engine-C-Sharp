@@ -6,7 +6,9 @@ namespace Lucid
     public class Demo
     {
         // an instance of the Engine
-        private Engine engine;
+        private Engine _engine;
+        // player shape
+        private Shape2D _player;
 
         /// <summary>
         /// Constructor for the Demo Project
@@ -18,12 +20,14 @@ namespace Lucid
             Canvas canvas = new();
 
             // init Engine
-            engine = new Engine(canvas, new Vector2D(500, 400), "Foo");
+            _engine = new Engine(canvas, new Vector2D(500, 400), "Foo");
 
             // subscribe to some methods
-            engine.RenderGame += Engine_RenderGame;
-            engine.UpdateGame += Engine_UpdateGame;
-            engine.DrawGame += Engine_DrawGame;
+            _engine.RenderGame += Engine_RenderGame;
+            _engine.UpdateGame += Engine_UpdateGame;
+            _engine.DrawGame += Engine_DrawGame;
+            
+            _player = new Shape2D(new Vector2D(10, 10), new Vector2D(50, 50), "player", Color.Red);
 
             // run the Form
             Application.Run(canvas);
@@ -36,13 +40,16 @@ namespace Lucid
                 return;
             }
 
-            Graphics g = e.CanvasGraphics;
-            g.Clear(Color.Yellow);
+            // TODO: implement
         }
 
         private void Engine_UpdateGame(object? sender, EngineEventArgs e)
         {
             // TODO: implement
+
+            double fooPos = Math.Sin(_engine.TimeStamp) * 100;
+            _player.Position.X = (float)fooPos;
+            _player.Position.Y = (float)fooPos;
         }
         private void Engine_DrawGame(object? sender, EngineEventArgs e)
         {

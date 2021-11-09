@@ -4,42 +4,23 @@ namespace Lucid.Lucid
 {
     class Engine
     {
+        // canvas being drawn
         private Canvas _canvas = new();
-        /// <summary>
-        /// Canvas
-        /// </summary>
-        public Canvas Canvas
-        {
-            get => _canvas;
-            set { _canvas = value; UpdateCanvas(); }
-        }
-
+        public Canvas Canvas { get => _canvas; set { _canvas = value; UpdateCanvas(); }}
+        // canvas / window size
         private Vector2D _screenSize = new();
-        /// <summary>
-        /// ScreenSize
-        /// </summary>
-        public Vector2D ScreenSize
-        {
-            get => _screenSize;
-            set { _screenSize = value; UpdateCanvas(); }
-        }
+        public Vector2D ScreenSize { get => _screenSize; set { _screenSize = value; UpdateCanvas(); }}
 
+        // window title
         private string _text = "undefined";
-        /// <summary>
-        /// Text
-        /// </summary>
-        public string Text
-        {
-            get => _text;
-            set { _text = value; UpdateCanvas(); }
-        }
-
+        public string Text { get => _text; set { _text = value; UpdateCanvas(); }}
         // Thread for the main rendering loop
         private Thread _loopThread;
         // the starting time in milliseconds
         private long _timeStart = 0;
         // total time running in millisconds
         private long _timeStamp = 0;
+        public long TimeStamp { get => _timeStamp; }
         // the amount of time (in milliseconds) to simulate each time update() runs
         private long _simulationTimestep = 1000 / 60;
         // the cumulative amount of in-app time that hasn't been simulated yet
@@ -48,6 +29,7 @@ namespace Lucid.Lucid
         private long _lastFrameTimeMs = 0;
         // an exponential moving average of the frames per second
         private int _fps = 10;
+        public int Fps { get => _fps; }
         // a factor that affects how heavily to weight more recent seconds performance when calculating the average frames per second
         private float _fpsAlpha = 0.9f;
         // the minimum duration between updates to the frames-per-second estimate - higher values means more accuray
@@ -56,12 +38,10 @@ namespace Lucid.Lucid
         private long _lastFPSUpdate = 0;
         // the number of frames delivered since the last time the "fps" moving average was updated (i.e. since "lastFpsUpdate").
         private int _framesSinceLastFPSUpdate = 0;
-        // the number of times update() is called in a given frame
-        private int _numUpdateSteps = 0;
         // the minimum amount of time in milliseconds that must pass since the last frame was executed before another frame can be executed
         private long _minFrameDelay = 0;
-        // whether the simulation has fallen too far behind real time
-        //private bool _panic = false;
+
+        private static List<Shape2D> _shapes2D = new();
 
         /// <summary>
         /// Engine
@@ -69,15 +49,13 @@ namespace Lucid.Lucid
         /// <param name="canvas"></param>
         /// <param name="ScreenSize"></param>
         /// <param name="Text"></param>
-        public Engine(Canvas canvas, Vector2D ScreenSize, string Text = "Untitled")
+        public Engine(Canvas canvas, Vector2D screenSize, string text = "Untitled")
         {
             this.Canvas = canvas;
-            this.ScreenSize = ScreenSize;
-            this.Text = Text;
+            this.ScreenSize = screenSize;
+            this.Text = text;
 
             _timeStart = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-
-            UpdateCanvas();
 
             this.Canvas.Paint += OnRender;
 
@@ -85,6 +63,11 @@ namespace Lucid.Lucid
             _loopThread.Start();
 
 
+        }
+
+        public static void AddShape2D(Shape2D shape)
+        {
+            _shapes2D.Add(shape);
         }
 
         /// <summary>
@@ -130,23 +113,13 @@ namespace Lucid.Lucid
                     _framesSinceLastFPSUpdate = 0;
                 }
                 _framesSinceLastFPSUpdate++;
-
-                _numUpdateSteps = 0;
+                
                 while (_frameDelta >= _simulationTimestep)
                 {
                     // update stuff - e.g. positions x/y etc...
                     //RenderUpdate(SimulationTimestep / 1000);
                     OnUpdateGame();
                     _frameDelta -= _simulationTimestep;
-
-                    // sanity check: bail if we run the loop too many times. Triggers
-                    // after 4 seconds because most browsers will alert after 5 seconds
-                    // TODO: edit
-                    if (++_numUpdateSteps >= 240)
-                    {
-                        //_panic = true;
-                        break;
-                    }
                 }
 
                 // draw stuff
@@ -175,12 +148,18 @@ namespace Lucid.Lucid
 
         private void OnRender(object? sender, PaintEventArgs e)
         {
+            Graphics graphics = e.Graphics;
+            foreach (Shape2D shape in _shapes2D)
+            {
+                graphics.FillRectangle(new SolidBrush(shape.Color), shape.Position.X, shape.Position.Y, shape.Size.X, shape.Size.Y);
+            }
+
             // check for subscriber
             if (RenderGame != null)
             {
                 EngineEventArgs args = new();
-                args.Type = EngineEventTypes.RENDER_GAME;
-                args.CanvasGraphics = e.Graphics;
+                args.Type = EngineEventTypes.RenderGame;
+                args.CanvasGraphics = graphics;
                 RenderGame(this, args);
             }
         }
@@ -193,7 +172,7 @@ namespace Lucid.Lucid
             if (DrawGame != null)
             {
                 EngineEventArgs args = new();
-                args.Type = EngineEventTypes.DRAW_GAME;
+                args.Type = EngineEventTypes.DrawGame;
                 DrawGame(this, args);
             }
         }
@@ -207,7 +186,7 @@ namespace Lucid.Lucid
             {
                 EngineEventArgs args = new()
                 {
-                    Type = EngineEventTypes.UPDATE_GAME
+                    Type = EngineEventTypes.UpdateGame
                 };
                 UpdateGame(this, args);
             }
@@ -216,16 +195,17 @@ namespace Lucid.Lucid
         public event EventHandler<EngineEventArgs>? UpdateGame;
     }
 
-    public static class EngineEventTypes
+    public enum EngineEventTypes
     {
-        public const string RENDER_GAME = "RENDER_GAME";
-        public const string UPDATE_GAME = "UPDATE_GAME";
-        public const string DRAW_GAME = "DRAW_GAME";
+        Undefined,
+        RenderGame,
+        UpdateGame,
+        DrawGame
     }
 
     public class EngineEventArgs : EventArgs
     {
-        public string Type { get; set; } = "";
+        public EngineEventTypes Type { get; set; } = EngineEventTypes.Undefined;
         public Graphics? CanvasGraphics { get; set; } = null;
     }
 }

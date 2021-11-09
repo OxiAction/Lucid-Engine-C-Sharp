@@ -8,10 +8,10 @@
         public float X { get; set; }
         public float Y { get; set; }
 
-        public Vector2D(float X = 0, float Y = 0)
+        public Vector2D(float x = 0, float y = 0)
         {
-            this.X = X;
-            this.Y = Y;
+            this.X = x;
+            this.Y = y;
         }
     }
 }
