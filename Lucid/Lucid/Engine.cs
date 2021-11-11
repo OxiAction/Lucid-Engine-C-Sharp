@@ -22,9 +22,9 @@ namespace Lucid.Lucid
         private long _timeStamp = 0;
         public long TimeStamp { get => _timeStamp; }
         // the amount of time (in milliseconds) to simulate each time update() runs
-        private long _simulationTimestep = 1000 / 60;
+        private float _simulationTimestep = 1000 / 60;
         // the cumulative amount of in-app time that hasn't been simulated yet
-        private long _frameDelta = 0;
+        private float _frameDelta = 0;
         // the last time the loop was run
         private long _lastFrameTimeMs = 0;
         // an exponential moving average of the frames per second
@@ -59,8 +59,8 @@ namespace Lucid.Lucid
         }
         // states if engine is running - or not
         public bool _running = false;
-
-        private static List<Shape2D> _shapes2D = new();
+        // list of entities to be updated / rendered
+        private List<Entity> _entities = new();
 
         /// <summary>
         /// Engine Constructor
@@ -115,9 +115,9 @@ namespace Lucid.Lucid
             _running = false;
         }
 
-        public static void AddShape2D(Shape2D shape)
+        public void AddEntity(Entity entity)
         {
-            _shapes2D.Add(shape);
+            _entities.Add(entity);
         }
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace Lucid.Lucid
 
                 // render begin (debug related stuff)
                 // TODO: implement - for now just output FPS
-                Debug.WriteLine(_fps);
+                //Debug.WriteLine(_fps);
 
                 // calculate frames per second
                 if (_timeStamp > _lastFPSUpdate + _fpsUpdateInterval)
@@ -171,8 +171,7 @@ namespace Lucid.Lucid
                 while (_frameDelta >= _simulationTimestep)
                 {
                     // update stuff - e.g. positions x/y etc...
-                    //RenderUpdate(SimulationTimestep / 1000);
-                    OnUpdateGame();
+                    OnUpdateGame(_simulationTimestep / 1000);
                     _frameDelta -= _simulationTimestep;
                 }
 
@@ -203,9 +202,9 @@ namespace Lucid.Lucid
         private void OnRender(object? sender, PaintEventArgs e)
         {
             Graphics graphics = e.Graphics;
-            foreach (Shape2D shape in _shapes2D)
+            foreach (Entity entity in _entities)
             {
-                graphics.FillRectangle(new SolidBrush(shape.Color), shape.Position.X, shape.Position.Y, shape.Size.X, shape.Size.Y);
+                graphics.FillRectangle(new SolidBrush(Color.Red), entity.X, entity.Y, entity.Width, entity.Height);
             }
 
             // check for subscriber
@@ -233,8 +232,13 @@ namespace Lucid.Lucid
 
         public event EventHandler<EngineEventArgs>? DrawGame;
 
-        public void OnUpdateGame()
+        public void OnUpdateGame(float delta)
         {
+            foreach (Entity entity in _entities)
+            {
+                entity.OnUpdateGame(delta);
+            }
+
             // check for subscriber
             if (UpdateGame != null)
             {

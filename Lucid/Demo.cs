@@ -8,7 +8,7 @@ namespace Lucid
         // an instance of the Engine
         private Engine _engine;
         // player shape
-        private Shape2D _player;
+        private Entity _player;
 
         /// <summary>
         /// Demo Constructor
@@ -20,20 +20,62 @@ namespace Lucid
             // init Engine
             _engine = new Engine(new Canvas(), new Vector2D(500, 400), "Foo")
             {
-                MaxFPS = 10
+                MaxFPS = 30
             };
 
             // subscribe to some methods
             _engine.RenderGame += Engine_RenderGame;
             _engine.UpdateGame += Engine_UpdateGame;
             _engine.DrawGame += Engine_DrawGame;
-            
-            _player = new Shape2D(new Vector2D(10, 10), new Vector2D(50, 50), "player", Color.Red);
+
+            _player = new Entity()
+            {
+                X = 10,
+                Y = 10,
+                Width = 20,
+                Height = 20,
+                Speed = 200
+            };
+
+            _engine.AddEntity(_player);
+
+            _engine.Canvas.KeyDown += new KeyEventHandler(Canvas_KeyDown);
+            _engine.Canvas.KeyUp += new KeyEventHandler(Canvas_KeyUp);
 
             _engine.Start();
 
             // run the Form
             Application.Run(_engine.Canvas);
+        }
+
+        private void Canvas_KeyDown(object? sender, KeyEventArgs e)
+        {
+            SetPlayerMovement(e, true);
+        }
+
+        private void Canvas_KeyUp(object? sender, KeyEventArgs e)
+        {
+            SetPlayerMovement(e, false);
+        }
+
+        private void SetPlayerMovement(KeyEventArgs e, bool value)
+        {
+            if (e.KeyCode == Keys.Right)
+            {
+                _player.MovementDirections.Right = value;
+            }
+            if (e.KeyCode == Keys.Left)
+            {
+                _player.MovementDirections.Left = value;
+            }
+            if (e.KeyCode == Keys.Down)
+            {
+                _player.MovementDirections.Down = value;
+            }
+            if (e.KeyCode == Keys.Up)
+            {
+                _player.MovementDirections.Up = value;
+            }
         }
 
         private void Engine_RenderGame(object? sender, EngineEventArgs e)
@@ -49,17 +91,6 @@ namespace Lucid
         private void Engine_UpdateGame(object? sender, EngineEventArgs e)
         {
             // TODO: implement
-            
-            // testing: move shape
-            double fooPos = Math.Sin(_engine.TimeStamp) * 100;
-            _player.Position.X = (float)fooPos;
-            _player.Position.Y = (float)fooPos;
-
-            // testing: stop engine after 5 seconds of running
-            if (_engine.TimeStamp > 5000)
-            {
-                _engine.Stop();
-            }
         }
         private void Engine_DrawGame(object? sender, EngineEventArgs e)
         {
