@@ -1,19 +1,17 @@
-﻿using System.Diagnostics;
-
-namespace Lucid.Lucid
+﻿namespace Lucid.Lucid
 {
     class Engine
     {
         // canvas being drawn
         private Canvas _canvas = new();
-        public Canvas Canvas { get => _canvas; set { _canvas = value; UpdateCanvas(); }}
+        public Canvas Canvas { get => _canvas; set { _canvas = value; UpdateCanvas(); } }
         // canvas / window size
         private Vector2D _screenSize = new();
-        public Vector2D ScreenSize { get => _screenSize; set { _screenSize = value; UpdateCanvas(); }}
+        public Vector2D ScreenSize { get => _screenSize; set { _screenSize = value; UpdateCanvas(); } }
 
         // window title
         private string _text = "undefined";
-        public string Text { get => _text; set { _text = value; UpdateCanvas(); }}
+        public string Text { get => _text; set { _text = value; UpdateCanvas(); } }
         // Thread for the main rendering loop
         private Thread _loopThread;
         // the starting time in milliseconds
@@ -42,7 +40,7 @@ namespace Lucid.Lucid
         // set max fps
         private long _maxFPS = 0;
         public long MaxFPS
-        { 
+        {
             get => _maxFPS;
             set
             {
@@ -86,7 +84,7 @@ namespace Lucid.Lucid
             {
                 return;
             }
-            
+
             if (!_loopThread.IsAlive)
             {
                 _loopThread.Start();
@@ -146,7 +144,7 @@ namespace Lucid.Lucid
                 _lastFrameTimeMs = _timeStamp;
 
                 // render begin (debug related stuff)
-                // TODO: implement - for now just output FPS
+                // TODO: implement debug overlay? For now just output FPS
                 //Debug.WriteLine(_fps);
 
                 // calculate frames per second
@@ -167,7 +165,7 @@ namespace Lucid.Lucid
                     _framesSinceLastFPSUpdate = 0;
                 }
                 _framesSinceLastFPSUpdate++;
-                
+
                 while (_frameDelta >= _simulationTimestep)
                 {
                     // update stuff - e.g. positions x/y etc...
@@ -204,7 +202,7 @@ namespace Lucid.Lucid
             Graphics graphics = e.Graphics;
             foreach (Entity entity in _entities)
             {
-                graphics.FillRectangle(new SolidBrush(Color.Red), entity.X, entity.Y, entity.Width, entity.Height);
+                entity.OnRender(graphics);
             }
 
             // check for subscriber

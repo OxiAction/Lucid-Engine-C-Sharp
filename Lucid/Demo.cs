@@ -20,28 +20,33 @@ namespace Lucid
             // init Engine
             _engine = new Engine(new Canvas(), new Vector2D(500, 400), "Foo")
             {
-                MaxFPS = 30
+                MaxFPS = 60
             };
 
-            // subscribe to some methods
+            // listener for core Engine methods
             _engine.RenderGame += Engine_RenderGame;
             _engine.UpdateGame += Engine_UpdateGame;
             _engine.DrawGame += Engine_DrawGame;
 
+            // setup player Entity
             _player = new Entity()
             {
                 X = 10,
                 Y = 10,
-                Width = 20,
-                Height = 20,
-                Speed = 200
+                Width = 75,
+                Height = 104,
+                Speed = 200,
+                ImageOffsetX = 0,
+                ImageOffsetY = 0
             };
-
+            _player.SetImage(System.AppDomain.CurrentDomain.BaseDirectory + "../../../Assets/player.png");
             _engine.AddEntity(_player);
 
+            // key event listener
             _engine.Canvas.KeyDown += new KeyEventHandler(Canvas_KeyDown);
             _engine.Canvas.KeyUp += new KeyEventHandler(Canvas_KeyUp);
 
+            // start Engine
             _engine.Start();
 
             // run the Form
